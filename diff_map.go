@@ -11,13 +11,13 @@ import (
 	"github.com/vmihailenco/msgpack/v5"
 )
 
-func (d *Differ) diffMap(path []string, a, b reflect.Value, parent interface{}) error {
+func (d *Differ) diffMap(path []string,pathTypes []interface{}, a, b reflect.Value, parent interface{}) error {
 	if a.Kind() == reflect.Invalid {
-		return d.mapValues(CREATE, path, b)
+		return d.mapValues(CREATE, path,pathTypes, b)
 	}
 
 	if b.Kind() == reflect.Invalid {
-		return d.mapValues(DELETE, path, a)
+		return d.mapValues(DELETE, path,pathTypes, a)
 	}
 
 	c := NewComparativeList()
@@ -32,10 +32,10 @@ func (d *Differ) diffMap(path []string, a, b reflect.Value, parent interface{}) 
 		c.addB(exportInterface(k), &be)
 	}
 
-	return d.diffComparative(path, c, exportInterface(a))
+	return d.diffComparative(path,pathTypes, c, exportInterface(a))
 }
 
-func (d *Differ) mapValues(t string, path []string, a reflect.Value) error {
+func (d *Differ) mapValues(t string, path []string,pathTypes []interface{}, a reflect.Value) error {
 	if t != CREATE && t != DELETE {
 		return ErrInvalidChangeType
 	}
@@ -60,10 +60,10 @@ func (d *Differ) mapValues(t string, path []string, a reflect.Value) error {
 			//we apply it in patch so... we'll marshal it to JSON
 			var b []byte
 			if b, err = msgpack.Marshal(k.Interface()); err == nil {
-				err = d.diff(append(path, string(b)), xe, ae, a.Interface())
+				err = d.diff(append(path, string(b)),pathTypes, xe, ae, a.Interface())
 			}
 		} else {
-			err = d.diff(append(path, fmt.Sprint(k.Interface())), xe, ae, a.Interface())
+			err = d.diff(append(path, fmt.Sprint(k.Interface())),pathTypes, xe, ae, a.Interface())
 		}
 		if err != nil {
 			return err

@@ -8,14 +8,14 @@ import (
 	"reflect"
 )
 
-func (d *Differ) diffSlice(path []string, a, b reflect.Value, parent interface{}) error {
+func (d *Differ) diffSlice(path []string,pathTypes []interface{}, a, b reflect.Value, parent interface{}) error {
 	if a.Kind() == reflect.Invalid {
 		d.cl.Add(CREATE, path, nil, exportInterface(b))
 		return nil
 	}
 
 	if b.Kind() == reflect.Invalid {
-		d.cl.Add(DELETE, path, exportInterface(a), nil)
+		d.cl.Add(DELETE, path,pathTypes, exportInterface(a), nil)
 		return nil
 	}
 
@@ -24,13 +24,13 @@ func (d *Differ) diffSlice(path []string, a, b reflect.Value, parent interface{}
 	}
 
 	if d.comparative(a, b) {
-		return d.diffSliceComparative(path, a, b)
+		return d.diffSliceComparative(path,pathTypes, a, b)
 	}
 
-	return d.diffSliceGeneric(path, a, b)
+	return d.diffSliceGeneric(path,pathTypes, a, b)
 }
 
-func (d *Differ) diffSliceGeneric(path []string, a, b reflect.Value) error {
+func (d *Differ) diffSliceGeneric(path []string,pathTypes []interface{}, a, b reflect.Value) error {
 	missing := NewComparativeList()
 
 	slice := sliceTracker{}
@@ -56,10 +56,10 @@ func (d *Differ) diffSliceGeneric(path []string, a, b reflect.Value) error {
 		return nil
 	}
 
-	return d.diffComparative(path, missing, exportInterface(a))
+	return d.diffComparative(path,pathTypes, missing, exportInterface(a))
 }
 
-func (d *Differ) diffSliceComparative(path []string, a, b reflect.Value) error {
+func (d *Differ) diffSliceComparative(path []string,pathTypes []interface{}, a, b reflect.Value) error {
 	c := NewComparativeList()
 
 	for i := 0; i < a.Len(); i++ {
@@ -82,7 +82,7 @@ func (d *Differ) diffSliceComparative(path []string, a, b reflect.Value) error {
 		}
 	}
 
-	return d.diffComparative(path, c, exportInterface(a))
+	return d.diffComparative(path,pathTypes, c, exportInterface(a))
 }
 
 // keeps track of elements that have already been matched, to stop duplicate matches from occurring
@@ -105,7 +105,7 @@ func (st *sliceTracker) has(s, v reflect.Value, d *Differ) bool {
 		nd.Filter = d.Filter
 		nd.customValueDiffers = d.customValueDiffers
 
-		err := nd.diff([]string{}, x, v, nil)
+		err := nd.diff([]string{},nil, x, v, nil)
 		if err != nil {
 			continue
 		}

@@ -71,7 +71,7 @@ func (t DiffType) String() string {
 }
 
 // DiffFunc represents the built-in diff functions
-type DiffFunc func([]string, reflect.Value, reflect.Value, interface{}) error
+type DiffFunc func([]string,[]interface{}, reflect.Value, reflect.Value, interface{}) error
 
 // Differ a configurable diff instance
 type Differ struct {
@@ -95,6 +95,7 @@ type Changelog []Change
 type Change struct {
 	Type   string      `json:"type"`
 	Path   []string    `json:"path"`
+	PathTypes []interface{}  `json:"path_types"`
 	From   interface{} `json:"from"`
 	To     interface{} `json:"to"`
 	Parent interface{} `json:"parent"`
@@ -103,8 +104,8 @@ type Change struct {
 // ValueDiffer is an interface for custom differs
 type ValueDiffer interface {
 	Match(a, b reflect.Value) bool
-	Diff(dt DiffType, df DiffFunc, cl *Changelog, path []string, a, b reflect.Value, parent interface{}) error
-	InsertParentDiffer(dfunc func(path []string, a, b reflect.Value, p interface{}) error)
+	Diff(dt DiffType, df DiffFunc, cl *Changelog, path []string,pathTypes []interface{}, a, b reflect.Value, parent interface{}) error
+	InsertParentDiffer(dfunc func(path []string,pathTypes []interface{}, a, b reflect.Value, p interface{}) error)
 }
 
 // Changed returns true if both values differ
@@ -147,7 +148,7 @@ type FilterFunc func(path []string, parent reflect.Type, field reflect.StructFie
 // StructValues gets all values from a struct
 // values are stored as "created" or "deleted" entries in the changelog,
 // depending on the change type specified
-func StructValues(t string, path []string, s interface{}) (Changelog, error) {
+func StructValues(t string, path []string,pathTypes []interface{}, s interface{}) (Changelog, error) {
 	d := Differ{
 		TagName:       "diff",
 		DiscardParent: false,
@@ -155,7 +156,7 @@ func StructValues(t string, path []string, s interface{}) (Changelog, error) {
 
 	v := reflect.ValueOf(s)
 
-	return d.cl, d.structValues(t, path, v)
+	return d.cl, d.structValues(t, path,pathTypes, v)
 }
 
 // FilterOut filter out the changes based on path. Paths may contain valid regexp to match items
@@ -218,11 +219,10 @@ func (d *Differ) Diff(a, b interface{}) (Changelog, error) {
 	// reset the state of the diff
 	d.cl = Changelog{}
 
-	return d.cl, d.diff([]string{}, reflect.ValueOf(a), reflect.ValueOf(b), nil)
+	return d.cl, d.diff([]string{},nil , reflect.ValueOf(a), reflect.ValueOf(b), nil)
 }
 
-func (d *Differ) diff(path []string, a, b reflect.Value, parent interface{}) error {
-
+func (d *Differ) diff(path []string,pathTypes []interface{}, a, b reflect.Value, parent interface{}) error {
 	//look and see if we need to discard the parent
 	if parent != nil {
 		if d.DiscardParent || reflect.TypeOf(parent).Kind() != reflect.Struct {
@@ -233,7 +233,7 @@ func (d *Differ) diff(path []string, a, b reflect.Value, parent interface{}) err
 	// check if types match or are
 	if invalid(a, b) {
 		if d.AllowTypeMismatch {
-			d.cl.Add(UPDATE, path, a.Interface(), b.Interface())
+			d.cl.Add(UPDATE, path,pathTypes, a.Interface(), b.Interface())
 			return nil
 		}
 		return ErrTypeMismatch
@@ -246,7 +246,7 @@ func (d *Differ) diff(path []string, a, b reflect.Value, parent interface{}) err
 	if len(d.customValueDiffers) > 0 {
 		for _, vd := range d.customValueDiffers {
 			if vd.Match(a, b) {
-				err := vd.Diff(diffType, diffFunc, &d.cl, path, a, b, parent)
+				err := vd.Diff(diffType, diffFunc, &d.cl, path,pathTypes, a, b, parent)
 				if err != nil {
 					return err
 				}
@@ -260,13 +260,14 @@ func (d *Differ) diff(path []string, a, b reflect.Value, parent interface{}) err
 		return errors.New("unsupported type: " + a.Kind().String())
 	}
 
-	return diffFunc(path, a, b, parent)
+	return diffFunc(path,pathTypes, a, b, parent)
 }
 
-func (cl *Changelog) Add(t string, path []string, ftco ...interface{}) {
+func (cl *Changelog) Add(t string, path []string,pathTypes []interface{} , ftco ...interface{}) {
 	change := Change{
 		Type: t,
 		Path: path,
+		PathTypes: pathTypes,
 		From: ftco[0],
 		To:   ftco[1],
 	}
@@ -347,6 +348,10 @@ func idComplex(v interface{}) string {
 	}
 
 }
+func idComplexType(v interface{}) reflect.Type {
+	return reflect.TypeOf(v)
+
+}
 func idstring(v interface{}) string {
 	switch v := v.(type) {
 	case string:
@@ -357,7 +362,9 @@ func idstring(v interface{}) string {
 		return fmt.Sprint(v)
 	}
 }
-
+func idType(v interface{}) reflect.Type {
+	return reflect.TypeOf(v)
+}
 func invalid(a, b reflect.Value) bool {
 	if a.Kind() == b.Kind() {
 		return false
@@ -409,6 +416,14 @@ func AreType(a, b reflect.Value, types ...reflect.Type) bool {
 
 func copyAppend(src []string, elems ...string) []string {
 	dst := make([]string, len(src)+len(elems))
+	copy(dst, src)
+	for i := len(src); i < len(src)+len(elems); i++ {
+		dst[i] = elems[i-len(src)]
+	}
+	return dst
+}
+func copyAppendType(src []interface{}, elems ...interface{}) []interface{} {
+	dst := make([]interface{}, len(src)+len(elems))
 	copy(dst, src)
 	for i := len(src); i < len(src)+len(elems); i++ {
 		dst[i] = elems[i-len(src)]

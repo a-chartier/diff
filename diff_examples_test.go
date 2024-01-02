@@ -5,7 +5,7 @@ import (
 	"math/big"
 	"reflect"
 
-	"github.com/r3labs/diff/v3"
+	"github.com/a-chtier/diff"
 )
 
 //Try to do a bunch of stuff that will result in some or all failures
@@ -590,7 +590,7 @@ func ExampleFilter() {
 	}
 
 	fmt.Printf("%#v", changelog)
-	// Output: diff.Changelog{diff.Change{Type:"update", Path:[]string{"id"}, From:1, To:2, parent:diff_test.Fruit{ID:1, Name:"Green Apple", Healthy:true, Nutrients:[]string{"vitamin c", "vitamin d"}, Tags:[]diff_test.Tag(nil)}}, diff.Change{Type:"create", Path:[]string{"nutrients", "2"}, From:interface {}(nil), To:"vitamin e", parent:interface {}(nil)}}
+	// Output: diff.Changelog{diff.Change{Type:"update", Path:[]string{"id"}, From:1, To:2, Parent:diff_test.Fruit{ID:1, Name:"Green Apple", Healthy:true, Nutrients:[]string{"vitamin c", "vitamin d"}, Tags:[]diff_test.Tag(nil)}}, diff.Change{Type:"create", Path:[]string{"nutrients", "2"}, From:interface {}(nil), To:"vitamin e", Parent:interface {}(nil)}}
 }
 
 func ExamplePrivatePtr() {
@@ -607,5 +607,5 @@ func ExamplePrivatePtr() {
 	}
 
 	fmt.Printf("%#v", changelog)
-	// Output: diff.Changelog{diff.Change{Type:"update", Path:[]string{"value"}, From:interface {}(nil), To:111, parent:diff_test.number{value:(*big.Int)(nil), exp:0}}}
+	// Output: diff.Changelog{diff.Change{Type:"update", Path:[]string{"value"}, From:interface {}(nil), To:111, Parent:diff_test.number{value:(*big.Int)(nil), exp:0}}}
 }

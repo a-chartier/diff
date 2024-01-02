@@ -97,7 +97,7 @@ type Change struct {
 	Path   []string    `json:"path"`
 	From   interface{} `json:"from"`
 	To     interface{} `json:"to"`
-	parent interface{} `json:"parent"`
+	Parent interface{} `json:"parent"`
 }
 
 // ValueDiffer is an interface for custom differs
@@ -271,7 +271,7 @@ func (cl *Changelog) Add(t string, path []string, ftco ...interface{}) {
 		To:   ftco[1],
 	}
 	if len(ftco) > 2 {
-		change.parent = ftco[2]
+		change.Parent = ftco[2]
 	}
 	(*cl) = append((*cl), change)
 }

@@ -186,7 +186,7 @@ func (c ChangeValue) ParentIndex(i int) (ret reflect.Value) {
 //present when allocating complex structs with slices and
 //arrays
 func (c ChangeValue) NewElement() reflect.Value {
-	ret := c.change.parent
+	ret := c.change.Parent
 	if ret != nil {
 		return reflect.ValueOf(ret)
 	}

@@ -12,6 +12,7 @@ func (d *Differ) diffString(path []string,pathTypes []interface{}, a, b reflect.
 		return nil
 	}
 
+	
 	if b.Kind() == reflect.Invalid {
 		d.cl.Add(DELETE, path,pathTypes, exportInterface(a), nil)
 		return nil

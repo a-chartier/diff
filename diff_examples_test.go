@@ -5,7 +5,7 @@ import (
 	"math/big"
 	"reflect"
 
-	"github.com/a-chtier/diff"
+	"github.com/a-chartier/diff"
 )
 
 //Try to do a bunch of stuff that will result in some or all failures

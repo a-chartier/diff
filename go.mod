@@ -1,4 +1,4 @@
-module github.com/a-chtier/diff
+module github.com/a-chartier/diff
 
 go 1.21
 

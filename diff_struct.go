@@ -9,25 +9,25 @@ import (
 	"time"
 )
 
-func (d *Differ) diffStruct(path []string,pathTypes []interface{}, a, b reflect.Value, parent interface{}) error {
+func (d *Differ) diffStruct(path []string, pathTypes []interface{}, a, b reflect.Value, parent interface{}) error {
 	if AreType(a, b, reflect.TypeOf(time.Time{})) {
-		return d.diffTime(path,pathTypes, a, b)
+		return d.diffTime(path, pathTypes, a, b)
 	}
 
 	if a.Kind() == reflect.Invalid {
 		if d.DisableStructValues {
-			d.cl.Add(CREATE, path,pathTypes, nil, exportInterface(b))
+			d.cl.Add(CREATE, path, pathTypes, nil, exportInterface(b))
 			return nil
 		}
-		return d.structValues(CREATE, path,pathTypes, b)
+		return d.structValues(CREATE, path, pathTypes, b)
 	}
 
 	if b.Kind() == reflect.Invalid {
 		if d.DisableStructValues {
-			d.cl.Add(DELETE, path,pathTypes, exportInterface(a), nil)
+			d.cl.Add(DELETE, path, pathTypes, exportInterface(a), nil)
 			return nil
 		}
-		return d.structValues(DELETE, path,pathTypes, a)
+		return d.structValues(DELETE, path, pathTypes, a)
 	}
 
 	for i := 0; i < a.NumField(); i++ {
@@ -49,10 +49,8 @@ func (d *Differ) diffStruct(path []string,pathTypes []interface{}, a, b reflect.
 		tpath := pathTypes
 		if !(d.FlattenEmbeddedStructs && field.Anonymous) {
 			fpath = copyAppend(fpath, tname)
-			tpath = append(tpath,af.Interface())
-			//tpath = copyAppendType(tpath, field.Type)
+			tpath = copyAppendType(tpath, exportInterface(bf))
 		}
-
 
 		if d.Filter != nil && !d.Filter(fpath, a.Type(), field) {
 			continue
@@ -63,7 +61,7 @@ func (d *Differ) diffStruct(path []string,pathTypes []interface{}, a, b reflect.
 			continue
 		}
 
-		err := d.diff(fpath,tpath, af, bf, exportInterface(a))
+		err := d.diff(fpath, tpath, af, bf, exportInterface(a))
 		if err != nil {
 			return err
 		}
@@ -72,7 +70,7 @@ func (d *Differ) diffStruct(path []string,pathTypes []interface{}, a, b reflect.
 	return nil
 }
 
-func (d *Differ) structValues(t string, path []string,pathTypes []interface{}, a reflect.Value) error {
+func (d *Differ) structValues(t string, path []string, pathTypes []interface{}, a reflect.Value) error {
 	var nd Differ
 	nd.Filter = d.Filter
 	nd.customValueDiffers = d.customValueDiffers
@@ -113,7 +111,7 @@ func (d *Differ) structValues(t string, path []string,pathTypes []interface{}, a
 			continue
 		}
 		tPath := pathTypes
-		err := nd.diff(fpath,tPath, xf, af, exportInterface(a))
+		err := nd.diff(fpath, tPath, xf, af, exportInterface(a))
 		if err != nil {
 			return err
 		}

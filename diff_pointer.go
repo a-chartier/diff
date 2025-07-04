@@ -11,23 +11,23 @@ import (
 
 var isExportFlag uintptr = (1 << 5) | (1 << 6)
 
-func (d *Differ) diffPtr(path []string,pathTypes []interface{}, a, b reflect.Value, parent interface{}) error {
+func (d *Differ) diffPtr(path []string, pathTypes []interface{}, a, b reflect.Value, parent interface{}) error {
 	if a.Kind() != b.Kind() {
 		if a.Kind() == reflect.Invalid {
 			if !b.IsNil() {
-				return d.diff(path,pathTypes, reflect.ValueOf(nil), reflect.Indirect(b), parent)
+				return d.diff(path, pathTypes, reflect.ValueOf(nil), reflect.Indirect(b), parent)
 			}
 
-			d.cl.Add(CREATE, path, nil, exportInterface(b), parent)
+			d.cl.Add(CREATE, path, pathTypes, nil, exportInterface(b), parent)
 			return nil
 		}
 
 		if b.Kind() == reflect.Invalid {
 			if !a.IsNil() {
-				return d.diff(path,pathTypes, reflect.Indirect(a), reflect.ValueOf(nil), parent)
+				return d.diff(path, pathTypes, reflect.Indirect(a), reflect.ValueOf(nil), parent)
 			}
 
-			d.cl.Add(DELETE, path,pathTypes, exportInterface(a), nil, parent)
+			d.cl.Add(DELETE, path, pathTypes, exportInterface(a), nil, parent)
 			return nil
 		}
 
@@ -39,16 +39,16 @@ func (d *Differ) diffPtr(path []string,pathTypes []interface{}, a, b reflect.Val
 	}
 
 	if a.IsNil() {
-		d.cl.Add(UPDATE, path, nil, exportInterface(b), parent)
+		d.cl.Add(UPDATE, path, pathTypes, nil, exportInterface(b), parent)
 		return nil
 	}
 
 	if b.IsNil() {
-		d.cl.Add(UPDATE, path,pathTypes, exportInterface(a), nil, parent)
+		d.cl.Add(UPDATE, path, pathTypes, exportInterface(a), nil, parent)
 		return nil
 	}
 
-	return d.diff(path,pathTypes, reflect.Indirect(a), reflect.Indirect(b), parent)
+	return d.diff(path, pathTypes, reflect.Indirect(a), reflect.Indirect(b), parent)
 }
 
 func exportInterface(v reflect.Value) interface{} {

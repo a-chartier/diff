@@ -6,14 +6,14 @@ package diff
 
 import "reflect"
 
-func (d *Differ) diffBool(path []string,pathTypes []interface{}, a, b reflect.Value, parent interface{}) error {
+func (d *Differ) diffBool(path []string, pathTypes []interface{}, a, b reflect.Value, parent interface{}) error {
 	if a.Kind() == reflect.Invalid {
-		d.cl.Add(CREATE, path, nil, exportInterface(b))
+		d.cl.Add(CREATE, path, pathTypes, nil, exportInterface(b))
 		return nil
 	}
 
 	if b.Kind() == reflect.Invalid {
-		d.cl.Add(DELETE, path,pathTypes, exportInterface(a), nil)
+		d.cl.Add(DELETE, path, pathTypes, exportInterface(a), nil)
 		return nil
 	}
 
@@ -22,7 +22,7 @@ func (d *Differ) diffBool(path []string,pathTypes []interface{}, a, b reflect.Va
 	}
 
 	if a.Bool() != b.Bool() {
-		d.cl.Add(UPDATE, path,pathTypes, exportInterface(a), exportInterface(b), parent)
+		d.cl.Add(UPDATE, path, pathTypes, exportInterface(a), exportInterface(b), parent)
 	}
 
 	return nil

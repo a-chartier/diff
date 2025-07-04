@@ -6,14 +6,14 @@ package diff
 
 import "reflect"
 
-func (d *Differ) diffInterface(path []string,pathTypes []interface{}, a, b reflect.Value, parent interface{}) error {
+func (d *Differ) diffInterface(path []string, pathTypes []interface{}, a, b reflect.Value, parent interface{}) error {
 	if a.Kind() == reflect.Invalid {
-		d.cl.Add(CREATE, path, nil, exportInterface(b))
+		d.cl.Add(CREATE, path, pathTypes, nil, exportInterface(b))
 		return nil
 	}
 
 	if b.Kind() == reflect.Invalid {
-		d.cl.Add(DELETE, path,pathTypes, exportInterface(a), nil)
+		d.cl.Add(DELETE, path, pathTypes, exportInterface(a), nil)
 		return nil
 	}
 
@@ -31,9 +31,9 @@ func (d *Differ) diffInterface(path []string,pathTypes []interface{}, a, b refle
 	}
 
 	if b.IsNil() {
-		d.cl.Add(UPDATE, path,pathTypes, exportInterface(a), nil, parent)
+		d.cl.Add(UPDATE, path, pathTypes, exportInterface(a), nil, parent)
 		return nil
 	}
 
-	return d.diff(path,pathTypes, a.Elem(), b.Elem(), parent)
+	return d.diff(path, pathTypes, a.Elem(), b.Elem(), parent)
 }

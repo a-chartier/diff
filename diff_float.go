@@ -8,14 +8,14 @@ import (
 	"reflect"
 )
 
-func (d *Differ) diffFloat(path []string,pathTypes []interface{}, a, b reflect.Value, parent interface{}) error {
+func (d *Differ) diffFloat(path []string, pathTypes []interface{}, a, b reflect.Value, parent interface{}) error {
 	if a.Kind() == reflect.Invalid {
-		d.cl.Add(CREATE, path, nil, exportInterface(b))
+		d.cl.Add(CREATE, path, pathTypes, nil, exportInterface(b))
 		return nil
 	}
 
 	if b.Kind() == reflect.Invalid {
-		d.cl.Add(DELETE, path,pathTypes, exportInterface(a), nil)
+		d.cl.Add(DELETE, path, pathTypes, exportInterface(a), nil)
 		return nil
 	}
 
@@ -25,9 +25,9 @@ func (d *Differ) diffFloat(path []string,pathTypes []interface{}, a, b reflect.V
 
 	if a.Float() != b.Float() {
 		if a.CanInterface() {
-			d.cl.Add(UPDATE, path,pathTypes, exportInterface(a), exportInterface(b), parent)
+			d.cl.Add(UPDATE, path, pathTypes, exportInterface(a), exportInterface(b), parent)
 		} else {
-			d.cl.Add(UPDATE, path,pathTypes, a.Float(), b.Float(), parent)
+			d.cl.Add(UPDATE, path, pathTypes, a.Float(), b.Float(), parent)
 		}
 	}
 
